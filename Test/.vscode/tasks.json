@@ -1,0 +1,120 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceRoot}"
+    },
+    "tasks": [
+        {
+            "label": "cmake-w64",
+            "type": "shell",
+            "command": "cmake",
+            "windows": {
+                "args": [
+                    "-DCMAKE_C_FLAGS=-m64",
+                    "-DCMAKE_CXX_FLAGS=-m64",
+                    "-S",
+                    ".",
+                    "-B",
+                    "build",
+                    "-G",
+                    "MinGW Makefiles"
+                ]
+            },
+            "linux": {
+                "args": [
+                    "-DCMAKE_C_FLAGS=-m64",
+                    "-DCMAKE_CXX_FLAGS=-m64",
+                    "-S",
+                    ".",
+                    "-B",
+                    "build"
+                ]
+            },
+            "osx": {
+
+            },
+            "presentation": {
+              "reveal": "always",
+            },
+        },
+        {
+            "label": "make-w64", // compile 64 bit
+            "type": "shell",
+            "command": "make",
+            "windows":{
+                "command": "mingw32-make"
+            },
+            "args": [
+                "-C",
+                "build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+              "reveal": "always",
+              "panel": "new"
+            },
+            "dependsOn":["cmake-w64"],
+        },
+        {
+            "label": "cmake-w32",
+            "type": "shell",
+            "command": "cmake",
+            "windows": {
+                "args": [
+                    "-DCMAKE_C_FLAGS=-m32",
+                    "-DCMAKE_CXX_FLAGS=-m32",
+                    "-S",
+                    ".",
+                    "-B",
+                    "build",
+                    "-G",
+                    "MinGW Makefiles"
+                ]
+            },
+            "linux": {
+                "args": [
+                    "-DCMAKE_C_FLAGS=-m32",
+                    "-DCMAKE_CXX_FLAGS=-m32",
+                    "-S",
+                    ".",
+                    "-B",
+                    "build"
+                ]
+            },
+            "osx": {
+
+            },
+            "presentation": {
+              "reveal": "always",
+            },
+        },
+        {
+            "label": "make-w32", // compile 32 bit
+            "type": "shell",
+            "command": "make",
+            "windows":{
+                "command": "mingw32-make"
+            },
+            "args": [
+                "-C",
+                "build"
+            ],
+            "presentation": {
+              "reveal": "always",
+              "panel": "new"
+            },
+            "dependsOn":["cmake-w32"],
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make clean -C build; rm -r build/*",
+            "problemMatcher": []
+        }
+    ]
+}
