@@ -7,13 +7,13 @@
     },
     "tasks": [
         {
-            "label": "cmake-w64",
+            "label": "cmake",
             "type": "shell",
             "command": "cmake",
             "windows": {
                 "args": [
-                    "-DCMAKE_C_FLAGS=-m64",
-                    "-DCMAKE_CXX_FLAGS=-m64",
+                    "-DCAMKE_BUILD_GENERATOR=${input:buildGenerator}",
+                    "-DCMAKE_BUILD_TYPE=${input:buildType}",
                     "-S",
                     ".",
                     "-B",
@@ -24,8 +24,8 @@
             },
             "linux": {
                 "args": [
-                    "-DCMAKE_C_FLAGS=-m64",
-                    "-DCMAKE_CXX_FLAGS=-m64",
+                    "-DCAMKE_BUILD_GENERATOR=${input:buildGenerator}",
+                    "-DCMAKE_BUILD_TYPE=${input:buildType}",
                     "-S",
                     ".",
                     "-B",
@@ -37,10 +37,11 @@
             },
             "presentation": {
               "reveal": "always",
+              "panel": "shared"
             },
         },
         {
-            "label": "make-w64", // compile 64 bit
+            "label": "make", // compile 64 bit
             "type": "shell",
             "command": "make",
             "windows":{
@@ -56,65 +57,44 @@
             },
             "presentation": {
               "reveal": "always",
-              "panel": "new"
+              "panel": "shared"
             },
-            "dependsOn":["cmake-w64"],
-        },
-        {
-            "label": "cmake-w32",
-            "type": "shell",
-            "command": "cmake",
-            "windows": {
-                "args": [
-                    "-DCMAKE_C_FLAGS=-m32",
-                    "-DCMAKE_CXX_FLAGS=-m32",
-                    "-S",
-                    ".",
-                    "-B",
-                    "build",
-                    "-G",
-                    "MinGW Makefiles"
-                ]
-            },
-            "linux": {
-                "args": [
-                    "-DCMAKE_C_FLAGS=-m32",
-                    "-DCMAKE_CXX_FLAGS=-m32",
-                    "-S",
-                    ".",
-                    "-B",
-                    "build"
-                ]
-            },
-            "osx": {
-
-            },
-            "presentation": {
-              "reveal": "always",
-            },
-        },
-        {
-            "label": "make-w32", // compile 32 bit
-            "type": "shell",
-            "command": "make",
-            "windows":{
-                "command": "mingw32-make"
-            },
-            "args": [
-                "-C",
-                "build"
-            ],
-            "presentation": {
-              "reveal": "always",
-              "panel": "new"
-            },
-            "dependsOn":["cmake-w32"],
+            "dependsOn":["cmake"],
         },
         {
             "label": "clean",
             "type": "shell",
-            "command": "make clean -C build; rm -r build/*",
-            "problemMatcher": []
+            "command": "make clean -C build",
+            "problemMatcher": [],
+            "presentation": {
+              "reveal": "always",
+              "panel": "shared"
+            },
+        }
+    ],
+    "inputs": [
+        {
+            "type": "pickString",
+            "id": "buildType",
+            "description": "What type of cmake build",
+            "options": [
+                "None",
+                "Debug",
+                "Release",
+                "RelWithDebInfo",
+                "MinSizeRe"
+            ],
+            "default": "Debug"
+        },
+        {
+            "type": "pickString",
+            "id": "buildGenerator",
+            "description": "What generator of cmake build",
+            "options": [
+                "x86",
+                "x64"
+            ],
+            "default": "x64"
         }
     ]
 }

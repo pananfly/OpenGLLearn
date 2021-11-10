@@ -1,0 +1,38 @@
+{
+  "buildType": {
+    "default": "debug",
+    "description": "The build type.",
+    "choices": {
+      "debug": {
+        "short": "Debug",
+        "long": "Disable optimizations - include debug information.",
+        "buildType": "Debug"
+      },
+      "release": {
+        "short": "Release",
+        "long": "Optimize for speed - exclude debug information.",
+        "buildType": "Release"
+      }
+    }
+  },
+  "buildTarget": {
+    "default": "x64",
+    "description": "abi for 64 bit target build",
+    "choices": {
+      "x64": {
+        "short": "x64",
+        "long": "abi for 64 bit",
+        "settings": {
+          "CAMKE_BUILD_GENERATOR": "x64"
+        }
+      },
+      "x86": {
+        "short": "x86",
+        "long": "abi for 32 bit target build",
+        "settings": {
+          "CAMKE_BUILD_GENERATOR": "x86"
+        }
+      }
+    }
+  }
+}
