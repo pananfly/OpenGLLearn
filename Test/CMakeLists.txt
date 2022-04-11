@@ -90,3 +90,5 @@ add_library(testdll SHARED testdll.cpp)
 
 # endif()
 # add_library(teststatic STATIC testdll.cpp)
+
+add_executable(Launch launch.cpp ${PROJECT_SOURCE_DIR}/launch.cpp) # set source files 添加编译源文件

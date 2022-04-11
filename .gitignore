@@ -24,3 +24,9 @@
 
 # cmake build
 */build/*
+
+# cache
+*/.cache/*
+
+# history
+*/.history/*
