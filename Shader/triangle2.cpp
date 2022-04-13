@@ -1,24 +1,16 @@
 /*** 
  * @Author: pananfly
- * @Date: 2022-04-11 16:49:58
- * @LastEditTime: 2022-04-12 10:48:32
+ * @Date: 2022-04-12 11:39:01
+ * @LastEditTime: 2022-04-12 13:41:16
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Triangle\triangle3.cpp
- * @pananfly
- */
-/*** 
- * @Author: pananfly
- * @Date: 2022-04-11 16:06:36
- * @LastEditTime: 2022-04-11 16:45:21
- * @LastEditors: pananfly
- * @Description: 
- * @FilePath: \Triangle\triangle2.cpp
+ * @FilePath: \Shader\triangle2.cpp
  * @pananfly
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -36,9 +28,10 @@ const char *vertexShaderSource = "#version 330 core\n"
     "}\0"; // location = VERTEX_INDEX_ID
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "uniform vec4 vertexColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vertexColor;\n"
     "}\n\0";
 
 int main()
@@ -122,7 +115,7 @@ int main()
 
     glVertexAttribPointer(VERTEX_INDEX_ID, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)nullptr); // 告诉opengl如何解析顶点数据
     glEnableVertexAttribArray(VERTEX_INDEX_ID); // 使能对应顶点着色器id，默认关闭
-    
+
 
 
 
@@ -140,8 +133,15 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram); // 使用着色器程序
-        glBindVertexArray(VAO); // 绑定顶点数组
 
+        // 需要在useProgram后赋值
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor"); // 从着色器程序中获取片段着色器uniform的地址id
+        double timeValue = glfwGetTime();
+        double greenValue = std::sin(timeValue) / 2.0f + 0.5;
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);// 给对应uniform地址赋值- 绿色
+
+
+        glBindVertexArray(VAO); // 绑定顶点数组
         // glDrawArrays(GL_TRIANGLES, 0, 6); // 画三角形，从下标0开始，画多少个顶点
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
  

@@ -1,19 +1,10 @@
 /*** 
  * @Author: pananfly
  * @Date: 2022-04-11 16:49:58
- * @LastEditTime: 2022-04-12 10:48:32
+ * @LastEditTime: 2022-04-12 11:36:41
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Triangle\triangle3.cpp
- * @pananfly
- */
-/*** 
- * @Author: pananfly
- * @Date: 2022-04-11 16:06:36
- * @LastEditTime: 2022-04-11 16:45:21
- * @LastEditors: pananfly
- * @Description: 
- * @FilePath: \Triangle\triangle2.cpp
+ * @FilePath: \Shader\triangle.cpp
  * @pananfly
  */
 #include <glad/glad.h>
@@ -30,15 +21,18 @@ const unsigned int VERTEX_INDEX_ID = 0;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "out vec4 vertexColor;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "   vertexColor = vec4(0.5, 0.0, 0.0, 1.0);\n"
     "}\0"; // location = VERTEX_INDEX_ID
 const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
+    "in vec4 vertexColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vertexColor;\n"
     "}\n\0";
 
 int main()
