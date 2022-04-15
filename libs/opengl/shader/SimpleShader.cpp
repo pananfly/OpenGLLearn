@@ -1,10 +1,10 @@
 /*** 
  * @Author: pananfly
  * @Date: 2022-04-12 14:16:13
- * @LastEditTime: 2022-04-13 11:01:50
+ * @LastEditTime: 2022-04-14 10:49:23
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Shaderc:\WorkSpaces\c_cplus_space\OpenGLLearn\libs\opengl\shader\SimpleShader.cpp
+ * @FilePath: \Texturesc:\WorkSpaces\c_cplus_space\OpenGLLearn\libs\opengl\shader\SimpleShader.cpp
  * @pananfly
  */
 #include "SimpleShader.h"
@@ -132,5 +132,13 @@ void GLShader::SimpleShader::Set4Float(const std::string &name, float v1, float 
     if(ID) 
     {
         glUniform4f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3, v4);
+    }
+}
+
+void GLShader::SimpleShader::SetMatrix4fv(const std::string &name, int matrixSize, bool transpose, float* value) const
+{
+    if(ID) 
+    {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), matrixSize, transpose, value);
     }
 }

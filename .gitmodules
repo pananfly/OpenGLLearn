@@ -1,3 +1,6 @@
 [submodule "libs/opengl/stb"]
 	path = libs/opengl/stb
 	url = https://github.com/nothings/stb.git
+[submodule "libs/opengl/glm"]
+	path = libs/opengl/glm
+	url = https://github.com/g-truc/glm.git

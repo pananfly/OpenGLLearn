@@ -1,10 +1,10 @@
 /*** 
  * @Author: pananfly
- * @Date: 2022-04-13 17:14:12
- * @LastEditTime: 2022-04-14 10:26:27
+ * @Date: 2022-04-15 16:09:42
+ * @LastEditTime: 2022-04-15 16:19:11
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Textures\texture2.cpp
+ * @FilePath: \Textures\texture6.cpp
  * @pananfly
  */
 #include <glad/glad.h>
@@ -16,7 +16,15 @@
 #include <string>
 #include "SimpleShader.h"
 #include "LocalShaderReader.h"
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/fwd.hpp"
+#include "glm/trigonometric.hpp"
 #include "stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -25,13 +33,24 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 const unsigned int VERTEX_POS_INDEX_ID = 0;
-const unsigned int VERTEX_COLOR_INDEX_ID = 1;
-const unsigned int VERTEX_TEXTURE_INDEX_ID = 2;
+const unsigned int VERTEX_TEXTURE_INDEX_ID = 1;
 
 float mixValue = 0.2f;
+float translateX = 0.5f;
+float translateY = -0.5f;
 
 int main(int argc, const char* argv[])
 {
+
+    // test glm
+    // 齐次坐标
+    glm::vec4 vecTest(1.0f, 0.0f, 0.0f, 1.0f);
+    // 单位4X4矩阵 glm v0.9.9开始要进行初始化
+    glm::mat4 traslateTest = glm::mat4(1.0);
+    // 位移 
+    traslateTest = glm::translate(traslateTest, glm::vec3(1.0f, 1.0f, 0.0f));
+    vecTest = traslateTest * vecTest;
+    std::cout << "glm test, x: " << vecTest.x << ", y: " << vecTest.y << ", z: " << vecTest.z << std::endl;
 
     // glfw: initialize and configure
     // ------------------------------
@@ -70,8 +89,8 @@ int main(int argc, const char* argv[])
 
     GLShader::LocalShaderReader shaderReader;
     std::string vertexShaderCode, fragmentShaderCode;
-    bool readRet = shaderReader.LoadShaderSource("../../../shader.vs", vertexShaderCode);
-    readRet = shaderReader.LoadShaderSource("../../../texture2.fs", fragmentShaderCode);
+    bool readRet = shaderReader.LoadShaderSource("../../../texture4.vs", vertexShaderCode);
+    readRet = shaderReader.LoadShaderSource("../../../texture4.fs", fragmentShaderCode);
     GLShader::SimpleShader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
     uint32_t VAO, VBO, EBO;
@@ -83,24 +102,69 @@ int main(int argc, const char* argv[])
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // 绑定索引缓冲
 
     float vertices[] = {
-        // 位置            // 颜色           // 纹理坐标
-         1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left  
+        // 位置            // 纹理坐标
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // 把顶点数据复制到缓冲中给opengl使用
     int indeces[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        0, 1, 2, // first triangle
+        3, 4, 5, 6,
+        7, 8, 9,
+        10, 11, 12,
+        13, 14, 15,
+        16, 17, 18,
+        19, 20, 21,
+        22, 23, 24,
+        25, 26, 27,
+        28, 29, 30,
+        31, 32, 33,
+        34, 35,
     };
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indeces), indeces, GL_STATIC_DRAW); // 把元素下标复制到索引缓冲中给opengl使用
 
-    glVertexAttribPointer(VERTEX_POS_INDEX_ID, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)nullptr); // 告诉opengl如何解析顶点数据 vec3 间隔8个float偏移量为0
+    glVertexAttribPointer(VERTEX_POS_INDEX_ID, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)nullptr); // 告诉opengl如何解析顶点数据 vec3 间隔8个float偏移量为0
     glEnableVertexAttribArray(VERTEX_POS_INDEX_ID); // 使能对应顶点着色器id，默认关闭
-    glVertexAttribPointer(VERTEX_COLOR_INDEX_ID, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float))); // 告诉opengl如何解析顶点数据 vec3 间隔8个float偏移量为3个float
-    glEnableVertexAttribArray(VERTEX_COLOR_INDEX_ID); // 使能对应顶点着色器id，默认关闭
-    glVertexAttribPointer(VERTEX_TEXTURE_INDEX_ID, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float))); // 告诉opengl如何解析顶点数据 vec2 间隔8个float偏移量为6个float
+    glVertexAttribPointer(VERTEX_TEXTURE_INDEX_ID, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float))); // 告诉opengl如何解析顶点数据 vec2 间隔8个float偏移量为6个float
     glEnableVertexAttribArray(VERTEX_TEXTURE_INDEX_ID); // 使能对应顶点着色器id，默认关闭
 
     uint32_t TEXTURE, TEXTURE2;
@@ -165,6 +229,25 @@ int main(int argc, const char* argv[])
     shader.Use(); // 使用着色器程序
     shader.SetInt("ourTexture", 0); // 设置对应片元着色器中的纹理为对应的第一个纹理
     shader.SetInt("ourTexture2", 1); // 设置对应片元着色器中的纹理为对应的第二个纹理
+
+    // 开启深度测试
+    // 深度值存储在每个片段里面（作为片段的z值），当片段想要输出它的颜色时，OpenGL会将它的深度值和z缓冲进行比较，如果当前的片段在其它片段之后，它将会被丢弃，否则将会覆盖。
+    // 这个过程称为深度测试(Depth Testing)，它是由OpenGL自动完成的。
+    glEnable(GL_DEPTH_TEST);
+
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)  
+    };
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -176,13 +259,11 @@ int main(int argc, const char* argv[])
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        // 清楚颜色缓冲和深度缓冲
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.Use(); // 使用着色器程序
-        // 设置片元着色器的值
-        shader.SetFloat("mixValue", mixValue);
-        // 激活第一个纹理
+                // 激活第一个纹理
         glActiveTexture(GL_TEXTURE0);
         // 绑定第一个纹理
         glBindTexture(GL_TEXTURE_2D, TEXTURE);
@@ -191,14 +272,35 @@ int main(int argc, const char* argv[])
         // 绑定纹理2
         glBindTexture(GL_TEXTURE_2D, TEXTURE2);
         glBindVertexArray(VAO); // 绑定顶点数组
-        // glDrawArrays(GL_TRIANGLES, 0, 6); // 画三角形，从下标0开始，画多少个顶点
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
+        // 设置片元着色器的值
+        shader.SetFloat("mixValue", mixValue);
+
+        glm::mat4 view = glm::mat4(1.0f);
+        // 注意，我们将矩阵向我们要进行移动场景的反方向移动。
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        glm::mat4 projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(45.0f), SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // 矩阵必须初始化为单位矩阵
+        for(uint32_t i = 0 ; i < 10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(20.0f * (i+ 1)), glm::vec3(1.0f, 0.3f, 0.5f));
+
+            glm::mat4 transform = projection * view * model;
+            shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(transform));
+
+            // glDrawArrays(GL_TRIANGLES, 0, 36); // 画三角形，从下标0开始，画多少个顶点
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
+        }
+
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
-        // glfwPollEvents();
-        glfwWaitEvents();
+        glfwPollEvents();
+        // WaitEvents会卡住等待信号
+        // glfwWaitEvents();
     }
 
     // 释放资源
@@ -222,11 +324,11 @@ void processInput(GLFWwindow *window)
     }
     else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        mixValue = std::min(mixValue += 0.01f, 1.0f);
+        mixValue = std::min(mixValue += 0.001f, 1.0f);
     }
     else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        mixValue = std::max(mixValue -= 0.01f, 0.0f);
+        mixValue = std::max(mixValue -= 0.001f, 0.0f);
     }
 }
 

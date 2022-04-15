@@ -68,6 +68,7 @@ ${PROJECT_SOURCE_DIR}/../libs/opengl/glfw/include
 ${PROJECT_SOURCE_DIR}/../libs/opengl/glad/include
 ${PROJECT_SOURCE_DIR}/../libs/opengl/shader
 ${PROJECT_SOURCE_DIR}/../libs/opengl/stb
+${PROJECT_SOURCE_DIR}/../libs/opengl/glm
 )
 link_directories(${GLFW_LINK_DIR}) # 指定glfw3的链接路径
 
@@ -97,6 +98,60 @@ ${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
 ${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
 ) # set source files
 target_link_libraries(texture2 glfw3)
+
+add_executable(texture3
+texture3.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture3 glfw3)
+
+add_executable(texture4
+texture4.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture4 glfw3)
+
+add_executable(texture5
+texture5.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture5 glfw3)
+
+add_executable(texture6
+texture6.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture6 glfw3)
+
+add_executable(texture7
+texture7.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture7 glfw3)
+
+add_executable(texture8
+texture8.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture8 glfw3)
 
 # copy lib
 if(CMAKE_HOST_WIN32 AND NEED_COPY_LINK_FILE)

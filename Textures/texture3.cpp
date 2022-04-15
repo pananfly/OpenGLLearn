@@ -1,10 +1,10 @@
 /*** 
  * @Author: pananfly
- * @Date: 2022-04-13 17:14:12
- * @LastEditTime: 2022-04-14 10:26:27
+ * @Date: 2022-04-14 10:24:31
+ * @LastEditTime: 2022-04-15 09:32:43
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Textures\texture2.cpp
+ * @FilePath: \Textures\texture3.cpp
  * @pananfly
  */
 #include <glad/glad.h>
@@ -16,7 +16,15 @@
 #include <string>
 #include "SimpleShader.h"
 #include "LocalShaderReader.h"
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/fwd.hpp"
+#include "glm/trigonometric.hpp"
 #include "stb_image.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -29,9 +37,21 @@ const unsigned int VERTEX_COLOR_INDEX_ID = 1;
 const unsigned int VERTEX_TEXTURE_INDEX_ID = 2;
 
 float mixValue = 0.2f;
+float translateX = 0.5f;
+float translateY = -0.5f;
 
 int main(int argc, const char* argv[])
 {
+
+    // test glm
+    // 齐次坐标
+    glm::vec4 vecTest(1.0f, 0.0f, 0.0f, 1.0f);
+    // 单位4X4矩阵 glm v0.9.9开始要进行初始化
+    glm::mat4 traslateTest = glm::mat4(1.0);
+    // 位移 
+    traslateTest = glm::translate(traslateTest, glm::vec3(1.0f, 1.0f, 0.0f));
+    vecTest = traslateTest * vecTest;
+    std::cout << "glm test, x: " << vecTest.x << ", y: " << vecTest.y << ", z: " << vecTest.z << std::endl;
 
     // glfw: initialize and configure
     // ------------------------------
@@ -70,7 +90,7 @@ int main(int argc, const char* argv[])
 
     GLShader::LocalShaderReader shaderReader;
     std::string vertexShaderCode, fragmentShaderCode;
-    bool readRet = shaderReader.LoadShaderSource("../../../shader.vs", vertexShaderCode);
+    bool readRet = shaderReader.LoadShaderSource("../../../texture3.vs", vertexShaderCode);
     readRet = shaderReader.LoadShaderSource("../../../texture2.fs", fragmentShaderCode);
     GLShader::SimpleShader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
@@ -165,6 +185,16 @@ int main(int argc, const char* argv[])
     shader.Use(); // 使用着色器程序
     shader.SetInt("ourTexture", 0); // 设置对应片元着色器中的纹理为对应的第一个纹理
     shader.SetInt("ourTexture2", 1); // 设置对应片元着色器中的纹理为对应的第二个纹理
+
+    // 初始化单位矩阵
+    // glm::mat4 shaderTrasform = glm::mat4(1.0);
+    // // 因为是在xy轴平面上，所以设置沿着z轴旋转，这里radians代表旋转是有弧度制的
+    // shaderTrasform = glm::rotate(shaderTrasform, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    // // 每个轴缩放0.5倍
+    // shaderTrasform = glm::scale(shaderTrasform, glm::vec3(0.5f, 0.5f, 0.5f));
+    // 第二个参数是多少个矩阵 
+    // 第三个参数是是否进行转置就是说交换我们矩阵的行和列,OpenGL开发者通常使用一种内部矩阵布局，叫做列主序(Column-major Ordering)布局。GLM的默认布局就是列主序，所以并不需要转置矩阵
+    // shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(shaderTrasform));
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -180,9 +210,7 @@ int main(int argc, const char* argv[])
 
 
         shader.Use(); // 使用着色器程序
-        // 设置片元着色器的值
-        shader.SetFloat("mixValue", mixValue);
-        // 激活第一个纹理
+                // 激活第一个纹理
         glActiveTexture(GL_TEXTURE0);
         // 绑定第一个纹理
         glBindTexture(GL_TEXTURE_2D, TEXTURE);
@@ -191,14 +219,32 @@ int main(int argc, const char* argv[])
         // 绑定纹理2
         glBindTexture(GL_TEXTURE_2D, TEXTURE2);
         glBindVertexArray(VAO); // 绑定顶点数组
+        // 设置片元着色器的值
+        shader.SetFloat("mixValue", mixValue);
+        glm::mat4 shaderTrasform = glm::mat4(1.0);
+        shaderTrasform = glm::translate(shaderTrasform, glm::vec3(translateX, translateY, 0.0f));
+        shaderTrasform = glm::rotate(shaderTrasform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        // 每个轴缩放0.5倍
+        shaderTrasform = glm::scale(shaderTrasform, glm::vec3(0.5f, 0.5f, 0.5f));
+        shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(shaderTrasform));
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
+
+        shaderTrasform = glm::mat4(1.0);
+        // 不断的放大缩小 0-1, 注意sin值为负值是会有翻转的情况，所以加上绝对值进行矫正
+        double scaleValue = std::min(std::abs(std::sin(glfwGetTime())), 0.5);
+        // shaderTrasform = glm::translate(shaderTrasform, glm::vec3(-0.5f, 0.5f, 0.0f));
+        shaderTrasform = glm::scale(shaderTrasform, glm::vec3(scaleValue, scaleValue, scaleValue));
+        shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(shaderTrasform));
+
         // glDrawArrays(GL_TRIANGLES, 0, 6); // 画三角形，从下标0开始，画多少个顶点
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
-        // glfwPollEvents();
-        glfwWaitEvents();
+        glfwPollEvents();
+        // WaitEvents会卡住等待信号
+        // glfwWaitEvents();
     }
 
     // 释放资源
@@ -222,11 +268,21 @@ void processInput(GLFWwindow *window)
     }
     else if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        mixValue = std::min(mixValue += 0.01f, 1.0f);
+        mixValue = std::min(mixValue += 0.001f, 1.0f);
+        translateY = std::min(translateY += 0.001f, 0.5f);
     }
     else if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        mixValue = std::max(mixValue -= 0.01f, 0.0f);
+        mixValue = std::max(mixValue -= 0.001f, 0.0f);
+        translateY = std::max(translateY -= 0.001f, -0.5f);
+    }
+    else if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        translateX = std::max(translateX -= 0.001f, -0.5f);
+    }
+    else if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        translateX = std::min(translateX += 0.001f, 0.5f);
     }
 }
 
