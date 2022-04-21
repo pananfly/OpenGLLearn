@@ -153,6 +153,15 @@ ${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
 ) # set source files
 target_link_libraries(texture8 glfw3)
 
+add_executable(texture9
+texture9.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/glad/src/glad.c 
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/SimpleShader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/shader/LocalShaderReader.cpp
+${PROJECT_SOURCE_DIR}/../libs/opengl/stbimpl/stb_image.cpp
+) # set source files
+target_link_libraries(texture9 glfw3)
+
 # copy lib
 if(CMAKE_HOST_WIN32 AND NEED_COPY_LINK_FILE)
     add_custom_command(TARGET ${PROJECT_NAME_STR}

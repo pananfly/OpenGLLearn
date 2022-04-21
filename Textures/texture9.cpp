@@ -1,19 +1,23 @@
 /*** 
  * @Author: pananfly
- * @Date: 2022-04-15 16:47:56
- * @LastEditTime: 2022-04-18 09:39:15
+ * @Date: 2022-04-18 11:01:51
+ * @LastEditTime: 2022-04-20 14:26:48
  * @LastEditors: pananfly
  * @Description: 
- * @FilePath: \Textures\texture8.cpp
+ * @FilePath: \Textures\texture9.cpp
  * @pananfly
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stdint.h>
+#include <cstdint>
+#include <cstdlib>
 #include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <thread>
+#include <stdint.h>
+#include <unistd.h>
 #include "SimpleShader.h"
 #include "LocalShaderReader.h"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -26,6 +30,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WGL
+#include <GLFW/glfw3native.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -37,6 +44,8 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 const unsigned int VERTEX_POS_INDEX_ID = 0;
 const unsigned int VERTEX_TEXTURE_INDEX_ID = 1;
+const unsigned int SCREEN_VERTEX_POS_INDEX_ID = 0;
+const unsigned int SCREEN_VERTEX_TEXTURE_INDEX_ID = 1;
 
 float mixValue = 0.2f;
 float translateX = 0.5f;
@@ -58,7 +67,6 @@ float cameraFieldView = 45.0f; // 视角
 
 int main(int argc, const char* argv[])
 {
-
     // test glm
     // 齐次坐标
     glm::vec4 vecTest(1.0f, 0.0f, 0.0f, 1.0f);
@@ -68,6 +76,7 @@ int main(int argc, const char* argv[])
     traslateTest = glm::translate(traslateTest, glm::vec3(1.0f, 1.0f, 0.0f));
     vecTest = traslateTest * vecTest;
     std::cout << "glm test, x: " << vecTest.x << ", y: " << vecTest.y << ", z: " << vecTest.z << std::endl;
+    
 
     // glfw: initialize and configure
     // ------------------------------
@@ -91,11 +100,13 @@ int main(int argc, const char* argv[])
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+    HWND hwnd = glfwGetWin32Window(window);
+    HGLRC wglContext = glfwGetWGLContext(window);
+    
     // 设置程序隐藏光标
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // 设置鼠标移动回调
-    glfwSetCursorPosCallback(window, mouse_callback);
+    // glfwSetCursorPosCallback(window, mouse_callback);
     // 设置鼠标滚动回调
     glfwSetScrollCallback(window, mouse_scroll_callback);
 
@@ -116,6 +127,10 @@ int main(int argc, const char* argv[])
     bool readRet = shaderReader.LoadShaderSource("../../../texture4.vs", vertexShaderCode);
     readRet = shaderReader.LoadShaderSource("../../../texture4.fs", fragmentShaderCode);
     GLShader::SimpleShader shader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
+
+    readRet = shaderReader.LoadShaderSource("../../../screen.vs", vertexShaderCode);
+    readRet = shaderReader.LoadShaderSource("../../../screen.fs", fragmentShaderCode);
+    GLShader::SimpleShader screenShader(vertexShaderCode.c_str(), fragmentShaderCode.c_str());
 
     uint32_t VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO); // 创建顶点数组
@@ -257,7 +272,69 @@ int main(int argc, const char* argv[])
     // 开启深度测试
     // 深度值存储在每个片段里面（作为片段的z值），当片段想要输出它的颜色时，OpenGL会将它的深度值和z缓冲进行比较，如果当前的片段在其它片段之后，它将会被丢弃，否则将会覆盖。
     // 这个过程称为深度测试(Depth Testing)，它是由OpenGL自动完成的。
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
+
+    screenShader.Use();
+    screenShader.SetInt("screenTexture", 0);
+
+    uint32_t FBO = 0, RBO = 0;
+    // 创建帧缓冲
+    glGenFramebuffers(1, &FBO);
+    // 绑定帧缓冲
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+    // 创建颜色附件纹理
+    uint32_t TEXTURE_COLOR_BUFFER = 0;
+    glGenTextures(1, &TEXTURE_COLOR_BUFFER);
+    // 绑定纹理
+    glBindTexture(GL_TEXTURE_2D, TEXTURE_COLOR_BUFFER);
+    // 附加纹理数据，此处设置为空数据
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    // 只需要设置过滤方式，不需要设置环绕方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // 先取消绑定纹理
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // 将当前纹理附加到当前绑定的帧缓冲对象 GL_COLOR_ATTACHMENT0是附加到第0个，说明可以附加很多个
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, TEXTURE_COLOR_BUFFER, 0);
+    // 创建渲染缓冲
+    glGenRenderbuffers(1, &RBO);
+    // 绑定渲染缓冲
+    glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+    // 创建深度和模板渲染缓冲对象
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    // 取消绑定渲染缓冲
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    // 将渲染缓冲对象附加到帧缓冲的深度和附加模板附件上
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+    // 检测帧缓冲是否完整
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cout << "ERROR: Framebuffer is not complete!" << std::endl;
+    }
+    // 取消绑定绑定帧缓冲
+    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+    uint32_t SCREEN_VAO = 0, SCREEN_VBO = 0;
+    glGenVertexArrays(1, &SCREEN_VAO); // 创建顶点数组
+    glBindVertexArray(SCREEN_VAO); // 绑定顶点数组
+    glGenBuffers(1, &SCREEN_VBO); // 创建顶点缓冲
+    glBindBuffer(GL_ARRAY_BUFFER, SCREEN_VBO); // 绑定顶点缓冲
+
+    float screen_vertices[] = {
+        // 位置            // 纹理坐标
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertices), screen_vertices, GL_STATIC_DRAW); // 把顶点数据复制到缓冲中给opengl使用
+    glVertexAttribPointer(SCREEN_VERTEX_POS_INDEX_ID, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)nullptr); // 告诉opengl如何解析顶点数据 vec2 间隔4个float偏移量为0
+    glEnableVertexAttribArray(SCREEN_VERTEX_POS_INDEX_ID); // 使能对应顶点着色器id，默认关闭
+    glVertexAttribPointer(SCREEN_VERTEX_TEXTURE_INDEX_ID, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float))); // 告诉opengl如何解析顶点数据 vec2 间隔4个float偏移量为2
+    glEnableVertexAttribArray(SCREEN_VERTEX_TEXTURE_INDEX_ID); // 使能对应顶点着色器id，默认关闭
 
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f), 
@@ -271,6 +348,7 @@ int main(int argc, const char* argv[])
         glm::vec3( 1.5f,  0.2f, -1.5f), 
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
+    
 
     // render loop
     // -----------
@@ -283,6 +361,10 @@ int main(int argc, const char* argv[])
         // -----
         processInput(window);
 
+        // 绑定帧缓冲
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        // 开启深度测试
+        glEnable(GL_DEPTH_TEST);
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -308,29 +390,42 @@ int main(int argc, const char* argv[])
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(cameraFieldView), SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        // 矩阵必须初始化为单位矩阵
-        for(uint32_t i = 0 ; i < 10; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(20.0f * (i+ 1)), glm::vec3(1.0f, 0.3f, 0.5f));
+        glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, cubePositions[0]);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(20.0f * (0+ 1)), glm::vec3(1.0f, 0.3f, 0.5f));
+        glm::mat4 transform = projection * view * model;
+        shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(transform));
+        // glDrawArrays(GL_TRIANGLES, 0, 36); // 画三角形，从下标0开始，画多少个顶点
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
+        // 取消绑定顶点数组
+        glBindVertexArray(0);
 
-            glm::mat4 transform = projection * view * model;
-            shader.SetMatrix4fv("transform", 1, false, glm::value_ptr(transform));
+        // 绑定无效帧缓冲
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // 关闭深度测试
+        glDisable(GL_DEPTH_TEST);
+        // 设置清除颜色
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // 清楚颜色位
+        glClear(GL_COLOR_BUFFER_BIT);
 
-            // glDrawArrays(GL_TRIANGLES, 0, 36); // 画三角形，从下标0开始，画多少个顶点
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0); // 通过画顶点元素的形式画三角形
-        }
-
- 
+        screenShader.Use();
+        // 绑定渲染屏幕顶点数组
+        glBindVertexArray(SCREEN_VAO);
+        // 激活第一个纹理
+        glActiveTexture(GL_TEXTURE0);
+        // 绑定帧缓冲纹理
+        glBindTexture(GL_TEXTURE_2D, TEXTURE_COLOR_BUFFER);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
         // WaitEvents会卡住等待信号
         // glfwWaitEvents();
+        // 延迟1毫秒防止cpu占用高
+        usleep(1000);
     }
-
     // 释放资源
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
